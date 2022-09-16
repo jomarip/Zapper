@@ -15,7 +15,8 @@ export async function setupMockSnowGlobe(
     Controller: Contract, timelockSigner: Signer,
     governanceSigner: Signer) {
 
-    let globeABI = (await ethers.getContractFactory(contract_name)).interface;
+    let abiPath = require('./../abis/Snowball/SnowGlobeABI.json'); 
+    let globeABI = (await ethers.getContractFactory(abiPath,snowglobe_addr,governanceSigner)).interface;
     let SnowGlobe: Contract
 
     if (snowglobe_addr == "") {
