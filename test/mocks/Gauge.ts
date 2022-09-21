@@ -19,7 +19,8 @@ export async function setupMockGauge(name: string, gauge_addr: string, lp_token_
         // Setup new gauge with GaugeProxy
         addGauge(name, SnowGlobe, governanceSigner, gauge_proxy_addr)
     } else {
-        Gauge = await ethers.getContractAt("GaugeV2", gauge_addr, governanceSigner);
+        let abiGaugePath = require('./../abis/Snowball/SnowGlobeABI.json'); 
+        Gauge = await ethers.getContractAt(abiGaugePath, gauge_addr, governanceSigner);
     }
     return Gauge;
 }

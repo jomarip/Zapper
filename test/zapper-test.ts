@@ -127,9 +127,16 @@ export function doZapperTests(
 
             //Approvals
             await TokenA.approve(zapper_addr, MAX_UINT256);
+            let allowanceT = await TokenA.allowance(wallet_addr,zapper_addr);
+            log(`The value of allowance for TokenA is: ${allowanceT}`);
             await TokenB.approve(zapper_addr, MAX_UINT256);
+            await SnowGlobe.approve(gauge_addr, MAX_UINT256);
+            await SnowGlobe.approve(zapper_addr, MAX_UINT256);
+            await TokenA.connect(walletSigner).approve(zapper_addr, MAX_UINT256);
+            await TokenB.connect(walletSigner).approve(zapper_addr, MAX_UINT256);
             await SnowGlobe.connect(walletSigner).approve(zapper_addr, MAX_UINT256);
             await SnowGlobe.connect(walletSigner).approve(gauge_addr, MAX_UINT256);
+            
         });
 
         describe("When setup is completed..", async () => {
@@ -156,24 +163,24 @@ export function doZapperTests(
 
         describe("When depositing..", async () => {
             it("..can zap in with TokenA", async () => {
-                const txnAmt = "33";
+                const txnAmt = "3";
                 await zapInToken(txnAmt, TokenA, LPToken, SnowGlobe, Zapper, walletSigner);
             })
 
             it("..can zap in with TokenB", async () => {
-                const txnAmt = "66";
+                const txnAmt = "6";
                 await zapInToken(txnAmt, TokenB, LPToken, SnowGlobe, Zapper, walletSigner);
             })
 
             it("..can zap in with AVAX", async () => {
-                const txnAmt = "55";
+                const txnAmt = "5";
                 const amt = ethers.utils.parseEther(txnAmt);
                 let [user1, globe1] = await getBalancesAvax(LPToken, walletSigner, SnowGlobe);
                 printBals("Original", globe1, user1);
 
                 log(`The value of A before zapping in with AVAX is: ${user1}`);
 
-                await Zapper.zapInAVAX(snowglobe_addr, 0, TokenB.address, { value: amt });
+                await Zapper.connect(walletSigner).zapInAVAX(snowglobe_addr, 0, TokenB.address, { value: amt });
                 let [user2, globe2] = await getBalancesAvax(LPToken, walletSigner, SnowGlobe);
                 printBals(`Zap ${txnAmt} AVAX`, globe2, user2);
 
@@ -210,7 +217,7 @@ export function doZapperTests(
                 let balB = (TokenB.address != WAVAX_ADDR) ? await returnBal(TokenB, wallet_addr) : await returnWalletBal(wallet_addr);
                 log(`The balance of A and B before we do anything is ${balA} and ${balB}`);
 
-                await Zapper.zapIn(snowglobe_addr, 0, TokenA.address, amt);
+                await Zapper.connect(walletSigner).zapIn(snowglobe_addr, 0, TokenA.address, amt);
                 let receipt = await Gauge.balanceOf(wallet_addr);
                 let balABefore = (TokenA.address != WAVAX_ADDR) ? await returnBal(TokenA, wallet_addr) : await returnWalletBal(wallet_addr);
                 let balBBefore = (TokenB.address != WAVAX_ADDR) ? await returnBal(TokenB, wallet_addr) : await returnWalletBal(wallet_addr);
@@ -220,7 +227,7 @@ export function doZapperTests(
 
                 await SnowGlobe.connect(walletSigner).earn();
                 await Gauge.connect(walletSigner).withdrawAll();
-                await Zapper.zapOut(snowglobe_addr, receipt);
+                await Zapper.connect(walletSigner).zapOut(snowglobe_addr, receipt);
                 let receipt2 = await Gauge.balanceOf(wallet_addr);
                 let balAAfter = (TokenA.address != WAVAX_ADDR) ? await returnBal(TokenA, wallet_addr) : await returnWalletBal(wallet_addr);
                 let balBAfter = (TokenB.address != WAVAX_ADDR) ? await returnBal(TokenB, wallet_addr) : await returnWalletBal(wallet_addr);
@@ -247,7 +254,7 @@ export function doZapperTests(
                 const txnAmt = "100";
                 const amt = ethers.utils.parseEther(txnAmt);
 
-                expect(Zapper.zapIn(snowglobe_addr, amt, TokenA.address, amt)).to.be.reverted;
+                expect(Zapper.connect(walletSigner).zapIn(snowglobe_addr, amt, TokenA.address, amt)).to.be.reverted;
             })
             it("..reverts on zap in avax", async () => {
                 const txnAmt = "1";
@@ -259,18 +266,18 @@ export function doZapperTests(
                 log(`the token A address is ${TokenA.address}`);
                 log(`the token B address is ${TokenB.address}`);
 
-                await expect(Zapper.zapInAVAX(snowglobe_addr, amt2, TokenA.address, { value: txnAmt })).to.be.reverted;
+                await expect(Zapper.connect(walletSigner).zapInAVAX(snowglobe_addr, amt2, TokenA.address, { value: txnAmt })).to.be.reverted;
             })
 
             it("..reverts on zap out token", async () => {
                 const txnAmt = "35";
                 const amt = ethers.utils.parseEther(txnAmt);
 
-                await Zapper.zapIn(snowglobe_addr, 0, TokenB.address, amt);
+                await Zapper.connect(walletSigner).zapIn(snowglobe_addr, 0, TokenB.address, amt);
                 let receipt = await Gauge.balanceOf(wallet_addr);
                 await SnowGlobe.connect(walletSigner).earn();
                 await Gauge.connect(walletSigner).withdrawAll();
-                await expect(Zapper.zapOutAndSwap(snowglobe_addr, receipt, TokenB.address, amt)).to.be.reverted;
+                await expect(Zapper.connect(walletSigner).zapOutAndSwap(snowglobe_addr, receipt, TokenB.address, amt)).to.be.reverted;
             })
 
             //missing

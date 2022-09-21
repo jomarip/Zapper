@@ -210,11 +210,15 @@ export async function zapInToken(txnAmt: string, token: Contract, lp_token: Cont
     const snowglobe_addr = SnowGlobe.address;
     const amt = ethers.utils.parseEther(txnAmt);
     let [user1, globe1] = await getBalances(token, lp_token, wallet_addr, SnowGlobe);
-    let symbol = await token.symbol;
+    const symbol = await token.symbol;
+    let allowanceTest = await token.allowance(wallet_addr,Zapper.address);
+
+    let floatAllowance = allowanceTest - 1001;
 
     log(`The value of ${symbol} before doing anything is: ${user1}`);
+    log(`The address of the tokenIn is ${token.address} and the amount is ${amt}`);
 
-    await Zapper.zapIn(snowglobe_addr, 0, token.address, amt);
+    await Zapper.connect(walletSigner).zapIn(snowglobe_addr, 1001, token.address, amt);
     let [user2, globe2] = await getBalances(token, lp_token, wallet_addr, SnowGlobe);
     printBals(`Zap ${txnAmt}`, globe2, user2);
 
@@ -242,7 +246,7 @@ export async function zapOutToken(txnAmt: string, token: Contract, lp_token: Con
 
     log(`The balance of ${symbol} before anything is done to it: ${balA}`);
 
-    await Zapper.zapIn(snowglobe_addr, 0, token.address, amt);
+    await Zapper.connect(walletSigner).zapIn(snowglobe_addr, 1001, token.address, amt);
     let receipt = await Gauge.balanceOf(wallet_addr);
     let balABefore = (token.address != WAVAX_ADDR) ? await returnBal(token, wallet_addr) : await returnWalletBal(wallet_addr);
 
@@ -250,7 +254,7 @@ export async function zapOutToken(txnAmt: string, token: Contract, lp_token: Con
 
     await SnowGlobe.connect(walletSigner).earn();
     await Gauge.connect(walletSigner).withdrawAll();
-    await Zapper.zapOutAndSwap(snowglobe_addr, receipt, token.address, 0);
+    await Zapper.connect(walletSigner).zapOutAndSwap(snowglobe_addr, receipt, token.address, 0);
 
     let balAAfter = (token.address != WAVAX_ADDR) ? await returnBal(token, wallet_addr) : await returnWalletBal(wallet_addr);
     let receipt2 = await Gauge.balanceOf(wallet_addr);
