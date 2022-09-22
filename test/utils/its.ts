@@ -264,7 +264,7 @@ export async function zapOutToken(txnAmt: string, token: Contract, lp_token: Con
 
     expect(receipt2).to.be.equals(0);
     (token.address != WAVAX_ADDR) ?
-        expect(balAAfter - balABefore).to.roughly(0.01).deep.equal(Number(txnAmt)) :
+        expect(balAAfter - balABefore).to.roughly(0.1).deep.equal(Number(txnAmt)) :
         expect(balAAfter).to.be.greaterThan(balABefore);
 
 }

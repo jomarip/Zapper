@@ -22,11 +22,65 @@ abstract contract ZapperBase {
 
     uint256 public constant minimumAmount = 1000;
 
-    constructor(address _router) public {
-        // Safety checks to ensure WAVAX token address
-        WAVAX(wavax).deposit{value: 0}();
-        WAVAX(wavax).withdraw(0);
-        router = _router;
+    // Utilization fees - start with 10%
+    uint256 public useTreasuryFee = 100;
+    uint256 public constant useTreasuryMax = 10000;
+
+    // Dev fees - start with 10%
+    uint256 public useDevFee = 0;
+    uint256 public constant useDevMax = 10000;
+
+    // User accounts
+    address public timelock;
+    address public treasury;
+    address public devFund;
+
+    //Set the Accounts
+    function setTimelock(address _timelock) external {
+        require(msg.sender == timelock, "!timelock");
+        timelock = _timelock;
+    }
+
+    function setTreasury(address _treasury) external {
+        require(msg.sender == timelock, "!timelock");
+        treasury = _treasury;
+    }
+
+    function setDevFund(address _devFund) external {
+        require(msg.sender == timelock, "!timelock");
+        devFund = _devFund;
+    }
+
+    //set the fees
+    function setUseTreasuryFee(uint256 _useTreasuryFee) external {
+        require(msg.sender == timelock, "!timelock");
+        useTreasuryFee = _useTreasuryFee;
+    }
+        
+    function setUseDevFee(uint256 _useDevFee) external {
+        require(msg.sender == timelock, "!timelock");
+        useDevFee = _useDevFee;
+    }
+
+        
+    constructor(
+        address _router,
+        address _timelock,
+        address _treasury,
+        address _devFund
+        ) public {
+            require(_timelock != address(0));
+            require(_treasury != address(0));
+            require(_devFund != address(0));
+
+            timelock = _timelock;
+            treasury = _treasury;
+            devFund = _devFund;
+
+            // Safety checks to ensure WAVAX token address
+            WAVAX(wavax).deposit{value: 0}();
+            WAVAX(wavax).withdraw(0);
+            router = _router;
     }
 
     receive() external payable {
@@ -60,6 +114,16 @@ abstract contract ZapperBase {
         require(msg.value >= minimumAmount, "Insignificant input amount");
 
         WAVAX(wavax).deposit{value: msg.value}();
+
+        uint256 _wavax = WAVAX(wavax).balanceOf(address(this));
+
+        //take dev fee and transfer
+        uint256 _feeDev = _wavax.mul(useDevFee).div(useDevMax);
+        WAVAX(wavax).transfer(devFund, _feeDev);
+
+        //take treasury fee and transfer
+        uint256 _feeTreasury = _wavax.mul(useTreasuryFee).div(useTreasuryMax);
+        WAVAX(wavax).transfer(treasury,_feeTreasury);
 
         // allows us to zapIn if avax isn't part of the original pair
         if (tokenIn != wavax){
@@ -106,6 +170,18 @@ abstract contract ZapperBase {
             address(this),
             tokenInAmount
         );
+
+        uint256 _amt = IERC20(tokenIn).balanceOf(address(this));
+
+        //take dev fee and transfer
+        uint256 _feeDev = _amt.mul(useDevFee).div(useDevMax);
+        IERC20(tokenIn).safeTransfer(devFund, _feeDev);
+
+        //take treasury fee and transfer
+        uint256 _feeTreasury = _amt.mul(useTreasuryFee).div(useTreasuryMax);
+        IERC20(tokenIn).safeTransfer(treasury,_feeTreasury);
+
+        //Swap and Stake
         _swapAndStake(snowglobe, tokenAmountOutMin, tokenIn);
     }
 
@@ -141,10 +217,20 @@ abstract contract ZapperBase {
         IERC20(snowglobe).safeTransferFrom(msg.sender, address(this), withdrawAmount);
         vault.withdraw(withdrawAmount);
 
+        uint256 _amt = IERC20(snowglobe).balanceOf(address(this));
+
+        //take dev fee and transfer
+        uint256 _feeDev = _amt.mul(useDevFee).div(useDevMax);
+        IERC20(snowglobe).safeTransfer(devFund, _feeDev);
+
+        //take treasury fee and transfer
+        uint256 _feeTreasury = _amt.mul(useTreasuryFee).div(useTreasuryMax);
+        IERC20(snowglobe).safeTransfer(treasury,_feeTreasury);
+
+        //remove liquidity
         if (pair.token0() != wavax && pair.token1() != wavax) {
             return _removeLiquidity(address(pair), msg.sender);
         }
-
 
         _removeLiquidity(address(pair), address(this));
 

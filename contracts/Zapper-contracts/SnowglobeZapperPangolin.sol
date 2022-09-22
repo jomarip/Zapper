@@ -7,8 +7,12 @@ import "../interfaces/gaugeproxy.sol";
 contract SnowglobeZapAvaxPangolin is ZapperBase {
     address public gaugeProxy = 0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27;
 
-    constructor()
-        public ZapperBase(0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106){
+    constructor(
+        address timelock,
+        address devFund,
+        address treasury
+    )
+        public ZapperBase(0xE54Ca86531e17Ef3616d22Ca28b0D458b6C89106,timelock,treasury,devFund){
 
         }
 

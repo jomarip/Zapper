@@ -237,13 +237,13 @@ export function doZapperTests(
                 log(`The difference of A before and after is: ${balAAfter - balABefore}`);
                 log(`The difference of B before and after is: ${balBAfter - balBBefore}`);
 
-                log(`The thing we want our balance to be equal to is: ${Number(txnAmt) / 2}`);
+                log(`The thing we want our balance to be near to is: ${Number(txnAmt) / 2}`);
 
                 (TokenA.address != WAVAX_ADDR) ?
-                    expect(balAAfter - balABefore, "Incorrect TokenA").to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
+                    expect(balAAfter - balABefore, "Incorrect TokenA").to.roughly(0.1).deep.equal(Number(txnAmt) / 2) :
                     expect(balAAfter).to.be.greaterThan(balABefore);
                 (TokenB.address != WAVAX_ADDR) ?
-                    expect(balBAfter - balBBefore, "Incorrect TokenB").to.roughly(0.01).deep.equal(Number(txnAmt) / 2) :
+                    expect(balBAfter - balBBefore, "Incorrect TokenB").to.roughly(0.1).deep.equal(Number(txnAmt) / 2) :
                     expect(balBAfter).to.be.greaterThan(balBBefore);
                 expect(receipt2).to.be.equals(0);
             })
