@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "./zapper-base.sol";
-import "../interfaces/gaugeproxy.sol";
+import "../zapper-base.sol";
+import "../../interfaces/gaugeproxy.sol";
 
 contract SnowglobeZapAvaxPangolin is ZapperBase {
     address public gaugeProxy = 0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27;

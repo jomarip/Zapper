@@ -235,6 +235,7 @@ export function getContractName(_poolType: string): string {
     switch (_poolType) {
         case "Pangolin": contractname = "SnowglobeZapAvaxPangolin"; break;
         case "TraderJoe": contractname = "SnowglobeZapAvaxTraderJoe"; break;
+        case "YYTraderJoe": contractname = "YYZapAvaxTraderJoe"; break;
         default: contractname = "POOL TYPE UNDEFINED";
     }
     return contractname
@@ -246,6 +247,7 @@ export function getPoolABI(_poolType: string): string {
     switch (_poolType) {
         case "Pangolin": abi = require('./../abis/PangolinABI.json'); break;
         case "TraderJoe": abi = require('./../abis/TraderJoeABI.json'); break;
+        case "YYTraderJoe": abi = require('./../abis/TraderJoeABI.json'); break;
         default: abi = "POOL TYPE UNDEFINED";
     }
     return abi
@@ -256,6 +258,7 @@ export function getLpSlot(_poolType: string): number {
     switch (_poolType) {
         case "Pangolin": slot = 1; break;
         case "TraderJoe": slot = 1; break;
+        case "YYTraderJoe": slot = 1; break;
         default: slot = -1;
     }
     return slot

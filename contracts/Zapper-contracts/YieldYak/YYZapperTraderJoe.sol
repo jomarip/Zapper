@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.7;
 
-import "./zapper-base.sol";
-import "../interfaces/gaugeproxy.sol";
+import "../zapper-base-yy.sol";
 
-contract SnowglobeZapAvaxTraderJoe is ZapperBase {
-    address public gaugeProxy = 0x215D5eDEb6A6a3f84AE9d72962FEaCCdF815BF27;
+contract YYZapAvaxTraderJoe is ZapperBaseYY {
 
     constructor(
         address timelock,
         address devFund,
         address treasury
     )
-        public ZapperBase(0x60aE616a2155Ee3d9A68541Ba4544862310933d4,timelock,treasury,devFund){
+        public ZapperBaseYY(0x60aE616a2155Ee3d9A68541Ba4544862310933d4,timelock,treasury,devFund){
 
         }
 
-    function zapOutAndSwap(address snowglobe, uint256 withdrawAmount, address desiredToken, uint256 desiredTokenOutMin) public override {
-        (IGlobe vault, IUniPair pair) = _getVaultPair(snowglobe);
+    function zapOutAndSwap(address yyVault, uint256 withdrawAmount, address desiredToken, uint256 desiredTokenOutMin) public override {
+        (IYY vault, IUniPair pair) = _getVaultPair(yyVault);
         address token0 = pair.token0();
         address token1 = pair.token1();
         require(token0 == desiredToken || token1 == desiredToken, "desired token not present in liquidity pair");
@@ -43,8 +41,8 @@ contract SnowglobeZapAvaxTraderJoe is ZapperBase {
         _returnAssets(path);
     }
 
-    function _swapAndStake(address snowglobe, uint256 tokenAmountOutMin, address tokenIn) public override {
-        (IGlobe vault, IUniPair pair) = _getVaultPair(snowglobe);
+    function _swapAndStake(address yyVault, uint256 tokenAmountOutMin, address tokenIn) public override {
+        (IYY vault, IUniPair pair) = _getVaultPair(yyVault);
 
         (uint256 reserveA, uint256 reserveB, ) = pair.getReserves();
         require(reserveA > minimumAmount && reserveB > minimumAmount, "Liquidity pair reserves too low");
@@ -95,12 +93,6 @@ contract SnowglobeZapAvaxTraderJoe is ZapperBase {
         //taking receipt token and sending back to user
         vault.safeTransfer(msg.sender, vault.balanceOf(address(this)));
 
-        //interact with gauge proxy to get gauge address
-        address gaugeAddress = IGaugeProxyV2(gaugeProxy).getGauge(snowglobe);
-
-        //deposit for into gauge
-        IGaugeV2(gaugeAddress).depositFor(vault.balanceOf(msg.sender), msg.sender);
-
         _returnAssets(path);
     }
 
@@ -123,8 +115,8 @@ contract SnowglobeZapAvaxTraderJoe is ZapperBase {
         );
     }
 
-    function estimateSwap(address snowglobe, address tokenIn, uint256 fullInvestmentIn) public view returns (uint256 swapAmountIn, uint256 swapAmountOut, address swapTokenOut){
-        (, IUniPair pair) = _getVaultPair(snowglobe);
+    function estimateSwap(address yyVault, address tokenIn, uint256 fullInvestmentIn) public view returns (uint256 swapAmountIn, uint256 swapAmountOut, address swapTokenOut){
+        (, IUniPair pair) = _getVaultPair(yyVault);
 
         bool isInputA = pair.token0() == tokenIn;
         require(isInputA || pair.token1() == tokenIn, "Input token not present in liquidity pair");
