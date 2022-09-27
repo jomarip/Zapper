@@ -13,6 +13,11 @@ interface IMiniChef {
 
     );
 
+    function lpToken(uint256 pid) external view returns (
+        address lpToken_addr
+    
+    );
+
     function poolInfo(uint256 pid) external view returns (
         IERC20 lpToken, // Address of LP token contract.
         uint256 allocPoint, // How many allocation points assigned to this poolInfo. SUSHI to distribute per block.
